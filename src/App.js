@@ -8,7 +8,7 @@ import ExpenseList from './components/ExpenseList';
 import BudgetForm from './components/BudgetForm';
 import BudgetTracker from './components/BudgetTracker';
 import ExpenseReports from './components/ExpenseReports';
-import { useIsMobile, useSwipeGesture, PullToRefresh } from './components/MobileEnhancements';
+import { useIsMobile, PullToRefresh } from './components/MobileEnhancements';
 import { ThemeProvider, ThemeToggle } from './components/ThemeProvider';
 
 // Custom hooks
@@ -40,21 +40,7 @@ function AppContent() {
     { id: 'reports', label: 'Reports', fullLabel: 'Reports', icon: MdBarChart }
   ];
 
-  // Swipe navigation for mobile
-  useSwipeGesture(
-    () => {
-      // Swipe left - next tab
-      const currentIndex = tabs.findIndex(tab => tab.id === activeTab);
-      const nextIndex = (currentIndex + 1) % tabs.length;
-      setActiveTab(tabs[nextIndex].id);
-    },
-    () => {
-      // Swipe right - previous tab
-      const currentIndex = tabs.findIndex(tab => tab.id === activeTab);
-      const prevIndex = (currentIndex - 1 + tabs.length) % tabs.length;
-      setActiveTab(tabs[prevIndex].id);
-    }
-  );
+  // Swipe navigation disabled - removed to prevent accidental tab switching
 
   const handleAddExpense = (expenseData) => {
     addExpense(expenseData);
@@ -234,11 +220,6 @@ function AppContent() {
             <span className="stat-value">{totalBudgets}</span>
             <span className="stat-label">Budgets</span>
           </div>
-          {isMobile && (
-            <div className="footer-hint">
-              Swipe left/right to navigate tabs
-            </div>
-          )}
           <div className="footer-credit">
             Made with ❤️ by Naveenkumar Kalluri
           </div>
