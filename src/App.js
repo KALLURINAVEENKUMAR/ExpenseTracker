@@ -181,6 +181,10 @@ function AppContent() {
             );
           })}
         </nav>
+
+        <footer className="app-footer-credit">
+          Made with ❤️ by Naveenkumar Kalluri
+        </footer>
       </div>
     </div>
   );
