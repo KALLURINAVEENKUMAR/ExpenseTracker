@@ -1631,6 +1631,10 @@ html.dark .theme-toggle:hover {
   font-family: 'Georgia', 'Times New Roman', serif;
   font-style: italic;
   background: linear-gradient(to bottom, transparent 0%, var(--bg-primary) 30%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
 }
 
 .app-footer-credit::before {
@@ -1658,6 +1662,51 @@ html.dark .theme-toggle:hover {
   animation: sparkle 2s ease-in-out infinite;
 }
 
+.credit-text {
+  margin-bottom: 0.5rem;
+}
+
+.social-links {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.linkedin-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #0077b5;
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 500;
+  font-family: var(--font-sans);
+  font-style: normal;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-md);
+  background: rgba(0, 119, 181, 0.1);
+  border: 1px solid rgba(0, 119, 181, 0.2);
+  transition: all 0.3s ease;
+}
+
+.linkedin-link:hover {
+  background: rgba(0, 119, 181, 0.15);
+  border-color: rgba(0, 119, 181, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 119, 181, 0.2);
+}
+
+.linkedin-icon {
+  width: 18px;
+  height: 18px;
+  color: #0077b5;
+  transition: transform 0.3s ease;
+}
+
+.linkedin-link:hover .linkedin-icon {
+  transform: scale(1.1);
+}
+
 @keyframes sparkle {
   0%, 100% {
     opacity: 0.8;
@@ -1674,5 +1723,16 @@ html.dark .theme-toggle:hover {
     font-size: 0.85rem;
     padding: 2rem 0.75rem 5rem;
     margin-top: 2rem;
+    gap: 0.75rem;
+  }
+  
+  .linkedin-link {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.8rem;
+  }
+  
+  .linkedin-icon {
+    width: 16px;
+    height: 16px;
   }
 }
