@@ -161,16 +161,7 @@ textarea {
 }
 
 .nav-tabs {
-  position: relative;
-  display: flex;
-  gap: 0.75rem;
-  background: var(--bg-secondary);
-  padding: 0.75rem;
-  border-radius: var(--radius-xl);
-  border: 1px solid var(--border-subtle);
-  box-shadow: var(--shadow-sm);
-  overflow-x: visible;
-  overflow-y: hidden;
+  display: none; /* Hidden - using bottom navigation instead */
 }
 
 .nav-tab {
@@ -1519,4 +1510,109 @@ html.dark .theme-toggle:hover {
   .modal-actions .btn {
     max-width: 100%;
   }
+}
+
+/* Bottom Navigation */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border-subtle);
+  box-shadow: 0 -4px 20px rgba(15, 23, 42, 0.08);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  z-index: 1000;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.bottom-nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  padding: 0.5rem;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: var(--radius-md);
+  position: relative;
+}
+
+.bottom-nav-icon {
+  font-size: 1.5rem;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bottom-nav-label {
+  font-size: 0.7rem;
+  text-transform: capitalize;
+  white-space: nowrap;
+  transition: all 0.3s ease;
+}
+
+.bottom-nav-item:hover {
+  background: rgba(15, 23, 42, 0.05);
+  color: var(--primary-color);
+}
+
+.bottom-nav-item:hover .bottom-nav-icon {
+  transform: scale(1.15);
+}
+
+.bottom-nav-item.active {
+  color: var(--primary-color);
+}
+
+.bottom-nav-item.active .bottom-nav-icon {
+  animation: iconPulse 0.6s ease;
+  transform: scale(1.1);
+}
+
+.bottom-nav-item.active .bottom-nav-label {
+  font-weight: 700;
+}
+
+.bottom-nav-item.active::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40%;
+  height: 3px;
+  background: var(--gradient-accent);
+  border-radius: 0 0 999px 999px;
+}
+
+@keyframes iconPulse {
+  0%, 100% {
+    transform: scale(1.1);
+  }
+  50% {
+    transform: scale(1.25);
+  }
+}
+
+/* Adjust main content for bottom nav */
+.app-shell {
+  padding-bottom: 5rem;
+}
+
+.main-content {
+  padding-bottom: 1rem;
 }

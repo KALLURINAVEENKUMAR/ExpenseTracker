@@ -148,16 +148,7 @@ function AppContent() {
     return content;
   };
 
-  const currentTabIndex = tabs.findIndex(tab => tab.id === activeTab);
-  const progressPercentage = ((currentTabIndex + 1) / tabs.length) * 100;
-  const totalExpenses = expenses.length;
-  const totalBudgets = budgets.length;
-  const totalSpent = expenses.reduce((sum, expense) => sum + expense.amount, 0);
-  const formattedTotalSpent = new Intl.NumberFormat('en-IN', {
-    style: 'currency',
-    currency: 'INR',
-    maximumFractionDigits: 0
-  }).format(totalSpent);
+  // Variables removed - no longer needed with bottom navigation
 
   return (
     <div className="App">
@@ -170,60 +161,26 @@ function AppContent() {
           </p>
         </header>
 
-        <nav className="nav-tabs">
-          {isMobile && (
-            <div
-              className="tab-progress"
-              style={{ width: `${progressPercentage}%` }}
-            />
-          )}
+        <main className="main-content">
+          {renderTabContent()}
+        </main>
 
+        <nav className="bottom-nav">
           {tabs.map(tab => {
             const IconComponent = tab.icon;
             return (
               <button
                 key={tab.id}
-                className={`nav-tab ${activeTab === tab.id ? 'active' : ''}`}
+                className={`bottom-nav-item ${activeTab === tab.id ? 'active' : ''}`}
                 onClick={() => setActiveTab(tab.id)}
                 title={tab.fullLabel}
               >
-                {isMobile ? (
-                  <>
-                    <IconComponent className="tab-icon" size={20} />
-                    <span>{tab.label}</span>
-                  </>
-                ) : (
-                  <>
-                    <IconComponent className="tab-icon" size={20} />
-                    <span>{tab.fullLabel}</span>
-                  </>
-                )}
+                <IconComponent className="bottom-nav-icon" size={24} />
+                <span className="bottom-nav-label">{tab.label}</span>
               </button>
             );
           })}
         </nav>
-
-        <main className="main-content">
-          {renderTabContent()}
-        </main>
-
-        <footer className="app-footer">
-          <div className="footer-stat">
-            <span className="stat-value">{totalExpenses}</span>
-            <span className="stat-label">Expenses</span>
-          </div>
-          <div className="footer-stat total">
-            <span className="stat-value">{formattedTotalSpent}</span>
-            <span className="stat-label">Total Spent</span>
-          </div>
-          <div className="footer-stat">
-            <span className="stat-value">{totalBudgets}</span>
-            <span className="stat-label">Budgets</span>
-          </div>
-          <div className="footer-credit">
-            Made with ❤️ by Naveenkumar Kalluri
-          </div>
-        </footer>
       </div>
     </div>
   );
