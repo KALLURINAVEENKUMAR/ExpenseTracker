@@ -166,7 +166,7 @@ function AppContent() {
         <header className="app-header">
           <h1 className="app-title">Expense Tracker</h1>
           <p className="app-subtitle">
-            Track your expenses in INR
+            Track your expenses in INR • Device-specific storage(only you can view the expenses added on this device)
           </p>
         </header>
 
