@@ -1,5 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, LineChart, Line } from 'recharts';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import { MdDownload } from 'react-icons/md';
 
 const ExpenseReports = ({ expenses }) => {
   const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7));
@@ -9,6 +12,13 @@ const ExpenseReports = ({ expenses }) => {
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
       currency: 'INR'
+    }).format(amount);
+  };
+
+  const formatAmountForPDF = (amount) => {
+    return 'Rs. ' + new Intl.NumberFormat('en-IN', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
     }).format(amount);
   };
 
@@ -109,6 +119,91 @@ const ExpenseReports = ({ expenses }) => {
     return colors[category] || '#777';
   };
 
+  const downloadPDFReport = () => {
+    const doc = new jsPDF();
+    const monthName = new Date(selectedMonth).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    
+    // Title
+    doc.setFontSize(20);
+    doc.setTextColor(37, 99, 235);
+    doc.text('Expense Report', 14, 20);
+    
+    // Subtitle
+    doc.setFontSize(12);
+    doc.setTextColor(100, 100, 100);
+    doc.text(monthName, 14, 28);
+    
+    // Summary Section
+    doc.setFontSize(14);
+    doc.setTextColor(0, 0, 0);
+    doc.text('Summary', 14, 40);
+    
+    doc.setFontSize(10);
+    doc.text(`Total Spent: ${formatAmountForPDF(summaryStats.total)}`, 14, 48);
+    doc.text(`Total Transactions: ${summaryStats.count}`, 14, 54);
+    doc.text(`Average per Transaction: ${formatAmountForPDF(summaryStats.average)}`, 14, 60);
+    doc.text(`Highest Daily Spending: ${formatAmountForPDF(summaryStats.maxDaily)}`, 14, 66);
+    
+    // Category Breakdown
+    doc.setFontSize(14);
+    doc.text('Category Breakdown', 14, 78);
+    
+    const categoryTableData = categoryAnalysis.map(item => [
+      item.category,
+      formatAmountForPDF(item.total),
+      item.count.toString(),
+      formatAmountForPDF(item.average)
+    ]);
+    
+    autoTable(doc, {
+      startY: 82,
+      head: [['Category', 'Total Amount', 'Count', 'Average']],
+      body: categoryTableData,
+      theme: 'striped',
+      headStyles: { fillColor: [37, 99, 235] },
+      styles: { fontSize: 9 }
+    });
+    
+    // All Expenses Table
+    const startY = doc.lastAutoTable.finalY + 10;
+    doc.setFontSize(14);
+    doc.text('All Expenses', 14, startY);
+    
+    const expensesTableData = monthlyExpenses
+      .sort((a, b) => new Date(b.date) - new Date(a.date))
+      .map(expense => [
+        new Date(expense.date).toLocaleDateString('en-IN'),
+        expense.description,
+        expense.category,
+        formatAmountForPDF(expense.amount)
+      ]);
+    
+    autoTable(doc, {
+      startY: startY + 4,
+      head: [['Date', 'Description', 'Category', 'Amount']],
+      body: expensesTableData,
+      theme: 'striped',
+      headStyles: { fillColor: [37, 99, 235] },
+      styles: { fontSize: 8 }
+    });
+    
+    // Footer
+    const pageCount = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(8);
+      doc.setTextColor(150, 150, 150);
+      doc.text(
+        `Generated on ${new Date().toLocaleDateString('en-IN')} | Page ${i} of ${pageCount}`,
+        14,
+        doc.internal.pageSize.height - 10
+      );
+    }
+    
+    // Save the PDF
+    doc.save(`Expense_Report_${monthName.replace(' ', '_')}.pdf`);
+  };
+
   const renderCategoryChart = () => {
     const pieData = categoryAnalysis.map(item => ({
       name: item.category,
@@ -141,7 +236,7 @@ const ExpenseReports = ({ expenses }) => {
                 cx="50%"
                 cy="50%"
                 labelLine={false}
-                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                label={false}
                 outerRadius={100}
                 fill="#8884d8"
                 dataKey="value"
@@ -150,7 +245,15 @@ const ExpenseReports = ({ expenses }) => {
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
-              <Tooltip formatter={(value) => formatAmount(value)} />
+              <Tooltip 
+                formatter={(value) => formatAmount(value)}
+                contentStyle={{ 
+                  backgroundColor: 'var(--bg-secondary)', 
+                  border: '1px solid var(--border-subtle)',
+                  borderRadius: '8px'
+                }}
+              />
+              <Legend />
             </PieChart>
           </ResponsiveContainer>
         </div>
@@ -287,6 +390,12 @@ const ExpenseReports = ({ expenses }) => {
               <option value="daily">By Day</option>
             </select>
           </div>
+          {monthlyExpenses.length > 0 && (
+            <button className="btn btn-download" onClick={downloadPDFReport}>
+              <MdDownload size={18} />
+              Download Report
+            </button>
+          )}
         </div>
       </div>
 
