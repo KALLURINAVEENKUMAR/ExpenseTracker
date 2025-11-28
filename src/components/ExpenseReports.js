@@ -3,22 +3,26 @@ import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, 
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { MdDownload } from 'react-icons/md';
+import { motion } from 'framer-motion';
+import AnimatedCounter from './AnimatedCounter';
+import EmptyState from './EmptyState';
 
 const ExpenseReports = ({ expenses }) => {
   const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7));
   const [reportType, setReportType] = useState('category');
 
+  const formatAmountForPDF = (amount) => {
+    // Use 'Rs.' instead of rupee symbol for PDF compatibility
+    return 'Rs. ' + new Intl.NumberFormat('en-IN', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(amount);
+  };
+
   const formatAmount = (amount) => {
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
       currency: 'INR'
-    }).format(amount);
-  };
-
-  const formatAmountForPDF = (amount) => {
-    return 'Rs. ' + new Intl.NumberFormat('en-IN', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
     }).format(amount);
   };
 
@@ -123,30 +127,66 @@ const ExpenseReports = ({ expenses }) => {
     const doc = new jsPDF();
     const monthName = new Date(selectedMonth).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
     
-    // Title
-    doc.setFontSize(20);
-    doc.setTextColor(37, 99, 235);
-    doc.text('Expense Report', 14, 20);
+    // Add background color to header
+    doc.setFillColor(37, 99, 235);
+    doc.rect(0, 0, 210, 40, 'F');
+    
+    // Title with white text
+    doc.setFontSize(24);
+    doc.setTextColor(255, 255, 255);
+    doc.setFont(undefined, 'bold');
+    doc.text('Expense Report', 105, 20, { align: 'center' });
     
     // Subtitle
-    doc.setFontSize(12);
-    doc.setTextColor(100, 100, 100);
-    doc.text(monthName, 14, 28);
-    
-    // Summary Section
     doc.setFontSize(14);
+    doc.setFont(undefined, 'normal');
+    doc.text(monthName, 105, 32, { align: 'center' });
+    
+    // Reset text color for body
     doc.setTextColor(0, 0, 0);
-    doc.text('Summary', 14, 40);
     
+    // Summary Section with colored boxes
+    doc.setFontSize(16);
+    doc.setFont(undefined, 'bold');
+    doc.setTextColor(37, 99, 235);
+    doc.text('Summary', 14, 52);
+    
+    // Summary boxes with borders
     doc.setFontSize(10);
-    doc.text(`Total Spent: ${formatAmountForPDF(summaryStats.total)}`, 14, 48);
-    doc.text(`Total Transactions: ${summaryStats.count}`, 14, 54);
-    doc.text(`Average per Transaction: ${formatAmountForPDF(summaryStats.average)}`, 14, 60);
-    doc.text(`Highest Daily Spending: ${formatAmountForPDF(summaryStats.maxDaily)}`, 14, 66);
+    doc.setFont(undefined, 'normal');
+    doc.setTextColor(80, 80, 80);
     
-    // Category Breakdown
-    doc.setFontSize(14);
-    doc.text('Category Breakdown', 14, 78);
+    const summaryY = 60;
+    const summaryData = [
+      { label: 'Total Spent', value: formatAmountForPDF(summaryStats.total), color: [220, 38, 38] },
+      { label: 'Transactions', value: summaryStats.count.toString(), color: [37, 99, 235] },
+      { label: 'Average', value: formatAmountForPDF(summaryStats.average), color: [16, 185, 129] },
+      { label: 'Highest Daily', value: formatAmountForPDF(summaryStats.maxDaily), color: [245, 158, 11] }
+    ];
+    
+    summaryData.forEach((item, index) => {
+      const x = 14 + (index * 48);
+      // Colored top border
+      doc.setFillColor(...item.color);
+      doc.rect(x, summaryY, 45, 2, 'F');
+      // Box
+      doc.setDrawColor(200, 200, 200);
+      doc.rect(x, summaryY, 45, 18);
+      doc.setFontSize(8);
+      doc.setTextColor(120, 120, 120);
+      doc.text(item.label, x + 2, summaryY + 6);
+      doc.setFontSize(10);
+      doc.setFont(undefined, 'bold');
+      doc.setTextColor(0, 0, 0);
+      doc.text(item.value, x + 2, summaryY + 14);
+      doc.setFont(undefined, 'normal');
+    });
+    
+    // Category Breakdown with styled table
+    doc.setFontSize(16);
+    doc.setFont(undefined, 'bold');
+    doc.setTextColor(37, 99, 235);
+    doc.text('Category Breakdown', 14, 92);
     
     const categoryTableData = categoryAnalysis.map(item => [
       item.category,
@@ -156,47 +196,114 @@ const ExpenseReports = ({ expenses }) => {
     ]);
     
     autoTable(doc, {
-      startY: 82,
+      startY: 96,
       head: [['Category', 'Total Amount', 'Count', 'Average']],
       body: categoryTableData,
-      theme: 'striped',
-      headStyles: { fillColor: [37, 99, 235] },
-      styles: { fontSize: 9 }
+      theme: 'grid',
+      headStyles: {
+        fillColor: [37, 99, 235],
+        textColor: 255,
+        fontSize: 10,
+        fontStyle: 'bold',
+        halign: 'center'
+      },
+      styles: {
+        fontSize: 9,
+        cellPadding: 4,
+        lineColor: [220, 220, 220],
+        lineWidth: 0.1
+      },
+      alternateRowStyles: {
+        fillColor: [245, 247, 250]
+      },
+      columnStyles: {
+        0: { fontStyle: 'bold', textColor: [37, 99, 235] },
+        1: { halign: 'right', textColor: [220, 38, 38] },
+        2: { halign: 'center' },
+        3: { halign: 'right' }
+      }
     });
     
-    // All Expenses Table
-    const startY = doc.lastAutoTable.finalY + 10;
-    doc.setFontSize(14);
+    // All Expenses Table with enhanced styling
+    const startY = doc.lastAutoTable.finalY + 14;
+    doc.setFontSize(16);
+    doc.setFont(undefined, 'bold');
+    doc.setTextColor(37, 99, 235);
     doc.text('All Expenses', 14, startY);
     
     const expensesTableData = monthlyExpenses
       .sort((a, b) => new Date(b.date) - new Date(a.date))
       .map(expense => [
-        new Date(expense.date).toLocaleDateString('en-IN'),
+        new Date(expense.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }),
+        expense.paymentMethod || 'N/A',
+        formatAmountForPDF(expense.amount),
         expense.description,
         expense.category,
-        formatAmountForPDF(expense.amount)
+        expense.paidBy || 'N/A'
       ]);
     
     autoTable(doc, {
       startY: startY + 4,
-      head: [['Date', 'Description', 'Category', 'Amount']],
+      head: [['Date', 'Payment', 'Amount', 'Description', 'Category', 'Paid By']],
       body: expensesTableData,
-      theme: 'striped',
-      headStyles: { fillColor: [37, 99, 235] },
-      styles: { fontSize: 8 }
+      theme: 'grid',
+      headStyles: {
+        fillColor: [37, 99, 235],
+        textColor: 255,
+        fontSize: 9,
+        fontStyle: 'bold',
+        halign: 'center'
+      },
+      styles: {
+        fontSize: 8,
+        cellPadding: 3,
+        lineColor: [220, 220, 220],
+        lineWidth: 0.1
+      },
+      alternateRowStyles: {
+        fillColor: [245, 247, 250]
+      },
+      columnStyles: {
+        0: { cellWidth: 20, halign: 'center', fontStyle: 'bold' },
+        1: { cellWidth: 25, halign: 'center', fontSize: 7, textColor: [16, 185, 129] },
+        2: { cellWidth: 28, halign: 'right', fontStyle: 'bold', textColor: [220, 38, 38] },
+        3: { cellWidth: 45 },
+        4: { cellWidth: 28, halign: 'center', fontSize: 7 },
+        5: { cellWidth: 20, halign: 'center', fontSize: 7, textColor: [37, 99, 235] }
+      },
+      didParseCell: function(data) {
+        // Payment column (index 1) - no icons, just text
+        if (data.column.index === 1 && data.cell.section === 'body') {
+          // Keep as is, no emoji modification
+        }
+        // Paid By column (index 5) - no icons, just text
+        if (data.column.index === 5 && data.cell.section === 'body') {
+          // Keep as is, no emoji modification
+        }
+      }
     });
     
-    // Footer
+    // Footer with decorative line
     const pageCount = doc.internal.getNumberOfPages();
     for (let i = 1; i <= pageCount; i++) {
       doc.setPage(i);
+      
+      // Decorative footer line
+      doc.setFillColor(37, 99, 235);
+      doc.rect(0, doc.internal.pageSize.height - 15, 210, 1, 'F');
+      
       doc.setFontSize(8);
-      doc.setTextColor(150, 150, 150);
+      doc.setTextColor(120, 120, 120);
       doc.text(
-        `Generated on ${new Date().toLocaleDateString('en-IN')} | Page ${i} of ${pageCount}`,
+        `Generated on ${new Date().toLocaleDateString('en-IN')}`,
         14,
-        doc.internal.pageSize.height - 10
+        doc.internal.pageSize.height - 8
+      );
+      doc.text(
+        `Page ${i} of ${pageCount}`,
+        doc.internal.pageSize.width - 14,
+        doc.internal.pageSize.height - 8,
+        { align: 'right' }
       );
     }
     
@@ -352,10 +459,10 @@ const ExpenseReports = ({ expenses }) => {
     return (
       <div className="expense-reports-container">
         <h2>Expense Reports</h2>
-        <div className="no-data">
-          <p>No expenses to analyze yet.</p>
-          <p>Start adding expenses to see reports and insights!</p>
-        </div>
+        <EmptyState
+          title="No Expenses Yet"
+          message="Start adding expenses to see beautiful reports and insights about your spending patterns!"
+        />
       </div>
     );
   }
@@ -406,27 +513,62 @@ const ExpenseReports = ({ expenses }) => {
       ) : (
         <>
           {/* Summary Statistics */}
-          <div className="summary-section">
+          <motion.div
+            className="summary-section"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
             <h3>Summary</h3>
             <div className="summary-grid">
-              <div className="summary-card">
+              <motion.div
+                className="summary-card"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.1 }}
+                whileHover={{ scale: 1.05, y: -5 }}
+              >
                 <div className="summary-label">Total Spent</div>
-                <div className="summary-value">{formatAmount(summaryStats.total)}</div>
-              </div>
-              <div className="summary-card">
+                <div className="summary-value">
+                  <AnimatedCounter value={summaryStats.total} duration={1.5} />
+                </div>
+              </motion.div>
+              <motion.div
+                className="summary-card"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.2 }}
+                whileHover={{ scale: 1.05, y: -5 }}
+              >
                 <div className="summary-label">Transactions</div>
                 <div className="summary-value">{summaryStats.count}</div>
-              </div>
-              <div className="summary-card">
+              </motion.div>
+              <motion.div
+                className="summary-card"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.3 }}
+                whileHover={{ scale: 1.05, y: -5 }}
+              >
                 <div className="summary-label">Average per Transaction</div>
-                <div className="summary-value">{formatAmount(summaryStats.average)}</div>
-              </div>
-              <div className="summary-card">
+                <div className="summary-value">
+                  <AnimatedCounter value={summaryStats.average} duration={1.5} />
+                </div>
+              </motion.div>
+              <motion.div
+                className="summary-card"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.4 }}
+                whileHover={{ scale: 1.05, y: -5 }}
+              >
                 <div className="summary-label">Highest Daily Spending</div>
-                <div className="summary-value">{formatAmount(summaryStats.maxDaily)}</div>
-              </div>
+                <div className="summary-value">
+                  <AnimatedCounter value={summaryStats.maxDaily} duration={1.5} />
+                </div>
+              </motion.div>
             </div>
-          </div>
+          </motion.div>
 
           {/* Charts */}
           {reportType === 'category' ? renderCategoryChart() : renderDailyChart()}

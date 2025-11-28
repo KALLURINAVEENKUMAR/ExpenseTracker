@@ -1,5 +1,10 @@
 import React from 'react';
 import { MdEdit, MdDelete } from 'react-icons/md';
+import { motion } from 'framer-motion';
+import { FaUser, FaUserFriends } from 'react-icons/fa';
+import { BsPersonFill, BsCreditCard2Front, BsWallet2, BsBank } from 'react-icons/bs';
+import { SiPhonepe, SiGooglepay, SiPaytm } from 'react-icons/si';
+import { MdQrCodeScanner } from 'react-icons/md';
 
 const ExpenseItem = ({ expense, onEdit, onDelete }) => {
   const formatDate = (dateString) => {
@@ -28,8 +33,37 @@ const ExpenseItem = ({ expense, onEdit, onDelete }) => {
     return colors[category] || '#777';
   };
 
+  const getPaidByIcon = (paidBy) => {
+    const icons = {
+      'Me': <FaUser />,
+      'Mom': <BsPersonFill />,
+      'Dad': <BsPersonFill />,
+      'Family': <FaUserFriends />
+    };
+    return icons[paidBy] || null;
+  };
+
+  const getPaymentIcon = (method) => {
+    const icons = {
+      'PhonePe': <SiPhonepe />,
+      'GPay': <SiGooglepay />,
+      'Paytm': <SiPaytm />,
+      'Credit Card': <BsCreditCard2Front />,
+      'Debit Card': <BsCreditCard2Front />,
+      'Cash': <BsWallet2 />,
+      'UPI': <MdQrCodeScanner />,
+      'Net Banking': <BsBank />
+    };
+    return icons[method] || null;
+  };
+
   return (
-    <div className="expense-item">
+    <motion.div
+      className="expense-item"
+      whileHover={{ scale: 1.02, y: -2 }}
+      whileTap={{ scale: 0.98 }}
+      layout
+    >
       <div className="expense-info">
         <div className="expense-main">
           <h3 className="expense-description">{expense.description}</h3>
@@ -43,25 +77,45 @@ const ExpenseItem = ({ expense, onEdit, onDelete }) => {
             {expense.category}
           </span>
           <span className="expense-date">{formatDate(expense.date)}</span>
+          {expense.paidBy && (
+            <span className="expense-paid-by" title="Paid by">
+              <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+                {getPaidByIcon(expense.paidBy)}
+              </span>
+              {' '}{expense.paidBy}
+            </span>
+          )}
+          {expense.paymentMethod && (
+            <span className="expense-payment-method" title="Payment Method">
+              <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+                {getPaymentIcon(expense.paymentMethod)}
+              </span>
+              {' '}{expense.paymentMethod}
+            </span>
+          )}
         </div>
       </div>
       <div className="expense-actions">
-        <button 
+        <motion.button 
           onClick={() => onEdit(expense)} 
           className="btn btn-edit"
           title="Edit expense"
+          whileHover={{ scale: 1.1, rotate: 5 }}
+          whileTap={{ scale: 0.9 }}
         >
           <MdEdit size={18} />
-        </button>
-        <button 
+        </motion.button>
+        <motion.button 
           onClick={() => onDelete(expense.id)} 
           className="btn btn-delete"
           title="Delete expense"
+          whileHover={{ scale: 1.1, rotate: -5 }}
+          whileTap={{ scale: 0.9 }}
         >
           <MdDelete size={18} />
-        </button>
+        </motion.button>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

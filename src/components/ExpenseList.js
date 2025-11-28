@@ -1,11 +1,15 @@
 import React, { useState } from 'react';
 import { MdDeleteSweep } from 'react-icons/md';
+import { motion, AnimatePresence } from 'framer-motion';
 import ExpenseItem from './ExpenseItem';
 import ConfirmModal from './ConfirmModal';
+import EmptyState from './EmptyState';
 
 const ExpenseList = ({ expenses, onEditExpense, onDeleteExpense, onClearAll }) => {
   const [sortBy, setSortBy] = useState('date');
   const [filterCategory, setFilterCategory] = useState('All');
+  const [filterPaidBy, setFilterPaidBy] = useState('All');
+  const [filterPaymentMethod, setFilterPaymentMethod] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
   const [showClearModal, setShowClearModal] = useState(false);
 
@@ -14,12 +18,21 @@ const ExpenseList = ({ expenses, onEditExpense, onDeleteExpense, onClearAll }) =
     'Bills & Utilities', 'Healthcare', 'Education', 'Travel', 'Other'
   ];
 
+  const paidByOptions = ['All', 'Me', 'Mom', 'Dad', 'Family'];
+  
+  const paymentMethods = [
+    'All', 'PhonePe', 'GPay', 'Paytm', 'Credit Card', 
+    'Debit Card', 'Cash', 'UPI', 'Net Banking'
+  ];
+
   // Filter and sort expenses
   const filteredAndSortedExpenses = expenses
     .filter(expense => {
       const matchesCategory = filterCategory === 'All' || expense.category === filterCategory;
+      const matchesPaidBy = filterPaidBy === 'All' || !expense.paidBy || expense.paidBy === filterPaidBy;
+      const matchesPaymentMethod = filterPaymentMethod === 'All' || !expense.paymentMethod || expense.paymentMethod === filterPaymentMethod;
       const matchesSearch = expense.description.toLowerCase().includes(searchTerm.toLowerCase());
-      return matchesCategory && matchesSearch;
+      return matchesCategory && matchesPaidBy && matchesPaymentMethod && matchesSearch;
     })
     .sort((a, b) => {
       switch (sortBy) {
@@ -58,7 +71,12 @@ const ExpenseList = ({ expenses, onEditExpense, onDeleteExpense, onClearAll }) =
   };
 
   return (
-    <div className="expense-list-container">
+    <motion.div
+      className="expense-list-container"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+    >
       <div className="expense-list-header">
         <div className="header-content">
           <h2>Your Expenses</h2>
@@ -131,30 +149,76 @@ const ExpenseList = ({ expenses, onEditExpense, onDeleteExpense, onClearAll }) =
             <option value="description">Description</option>
           </select>
         </div>
+
+        <div className="filter-group">
+          <label htmlFor="paid-by-filter">Paid By:</label>
+          <select
+            id="paid-by-filter"
+            value={filterPaidBy}
+            onChange={(e) => setFilterPaidBy(e.target.value)}
+          >
+            {paidByOptions.map(option => (
+              <option key={option} value={option}>{option}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="filter-group">
+          <label htmlFor="payment-method-filter">Payment Method:</label>
+          <select
+            id="payment-method-filter"
+            value={filterPaymentMethod}
+            onChange={(e) => setFilterPaymentMethod(e.target.value)}
+          >
+            {paymentMethods.map(method => (
+              <option key={method} value={method}>{method}</option>
+            ))}
+          </select>
+        </div>
       </div>
 
       <div className="expense-list">
-        {filteredAndSortedExpenses.length === 0 ? (
-          <div className="no-expenses">
-            <p>No expenses found.</p>
-            {expenses.length === 0 ? (
-              <p>Start by adding your first expense!</p>
-            ) : (
-              <p>Try adjusting your filters.</p>
-            )}
-          </div>
-        ) : (
-          filteredAndSortedExpenses.map(expense => (
-            <ExpenseItem
-              key={expense.id}
-              expense={expense}
-              onEdit={onEditExpense}
-              onDelete={onDeleteExpense}
-            />
-          ))
-        )}
+        <AnimatePresence mode="popLayout">
+          {filteredAndSortedExpenses.length === 0 ? (
+            <motion.div
+              key="empty"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              {expenses.length === 0 ? (
+                <EmptyState
+                  title="No Expenses Yet"
+                  message="Start by adding your first expense to track your spending!"
+                />
+              ) : (
+                <EmptyState
+                  title="No Matches Found"
+                  message="Try adjusting your filters to see more expenses."
+                />
+              )}
+            </motion.div>
+          ) : (
+            filteredAndSortedExpenses.map((expense, index) => (
+              <motion.div
+                key={expense.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, x: -100 }}
+                transition={{ delay: index * 0.05, duration: 0.3 }}
+                layout
+              >
+                <ExpenseItem
+                  expense={expense}
+                  onEdit={onEditExpense}
+                  onDelete={onDeleteExpense}
+                />
+              </motion.div>
+            ))
+          )}
+        </AnimatePresence>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

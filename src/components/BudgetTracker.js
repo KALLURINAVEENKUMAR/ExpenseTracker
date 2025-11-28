@@ -1,14 +1,11 @@
 import React from 'react';
+import { motion } from 'framer-motion';
+import ProgressRing from './ProgressRing';
+import AnimatedCounter from './AnimatedCounter';
+import EmptyState from './EmptyState';
 
 const BudgetTracker = ({ budgets, expenses }) => {
   const currentMonth = new Date().toISOString().slice(0, 7);
-
-  const formatAmount = (amount) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR'
-    }).format(amount);
-  };
 
   const getMonthlyExpenses = (month) => {
     return expenses
@@ -45,14 +42,19 @@ const BudgetTracker = ({ budgets, expenses }) => {
   const categoryExpenses = getCategoryExpenses(currentMonth);
 
   return (
-    <div className="budget-tracker-container">
+    <motion.div
+      className="budget-tracker-container"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+    >
       <h2>Budget Tracker - {new Date(currentMonth).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</h2>
       
       {!currentBudget ? (
-        <div className="no-budgets">
-          <p>No budget set for this month.</p>
-          <p>Set a monthly budget to track your spending!</p>
-        </div>
+        <EmptyState
+          title="No Budget Set"
+          message="Set a monthly budget to track your spending and stay on top of your finances!"
+        />
       ) : (
         <>
           <div className="budget-list">
@@ -62,69 +64,114 @@ const BudgetTracker = ({ budgets, expenses }) => {
               const status = getBudgetStatus(totalSpent, currentBudget.amount);
 
               return (
-                <div className={`budget-item ${status}`}>
-                  <div className="budget-header">
-                    <h3>Total Monthly Budget</h3>
-                    <div className="budget-amounts">
-                      <span className="spent">{formatAmount(totalSpent)}</span>
-                      <span className="separator"> / </span>
-                      <span className="budget">{formatAmount(currentBudget.amount)}</span>
+                <motion.div
+                  className={`budget-item-enhanced ${status}`}
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  <div className="budget-visual-section">
+                    <div className="progress-ring-wrapper">
+                      <ProgressRing
+                        percentage={percentage}
+                        spent={totalSpent}
+                        total={currentBudget.amount}
+                        status={status}
+                      />
+                    </div>
+                    <div className="budget-info-section">
+                      <div className="budget-header-enhanced">
+                        <h3>Total Monthly Budget</h3>
+                      </div>
+                      <div className="budget-amounts-animated">
+                        <div className="amount-box">
+                          <span className="amount-label">Spent</span>
+                          <span className="amount-value spent">
+                            <AnimatedCounter value={totalSpent} />
+                          </span>
+                        </div>
+                        <div className="amount-box">
+                          <span className="amount-label">Budget</span>
+                          <span className="amount-value budget">
+                            <AnimatedCounter value={currentBudget.amount} />
+                          </span>
+                        </div>
+                      </div>
+                      <div className="budget-status-enhanced">
+                        {remaining >= 0 ? (
+                          <motion.span
+                            className="remaining positive"
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.5 }}
+                          >
+                            <AnimatedCounter value={remaining} /> remaining
+                          </motion.span>
+                        ) : (
+                          <motion.span
+                            className="remaining negative"
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.5 }}
+                          >
+                            <AnimatedCounter value={Math.abs(remaining)} /> over budget
+                          </motion.span>
+                        )}
+                      </div>
                     </div>
                   </div>
-                  
-                  <div className="budget-progress">
-                    <div className="progress-bar">
-                      <div 
-                        className={`progress-fill ${status}`}
-                        style={{ width: `${percentage}%` }}
-                      ></div>
-                    </div>
-                    <div className="progress-text">
-                      {percentage.toFixed(1)}% used
-                    </div>
-                  </div>
-
-                  <div className="budget-status">
-                    {remaining >= 0 ? (
-                      <span className="remaining positive">
-                        {formatAmount(remaining)} remaining
-                      </span>
-                    ) : (
-                      <span className="remaining negative">
-                        {formatAmount(Math.abs(remaining))} over budget
-                      </span>
-                    )}
-                  </div>
-                </div>
+                </motion.div>
               );
             })()}
           </div>
 
           {/* Category breakdown */}
           {Object.keys(categoryExpenses).length > 0 && (
-            <div className="category-breakdown">
+            <motion.div
+              className="category-breakdown"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+            >
               <h3>Spending by Category</h3>
               <div className="category-list">
                 {Object.entries(categoryExpenses)
                   .sort((a, b) => b[1] - a[1])
-                  .map(([category, amount]) => {
+                  .map(([category, amount], index) => {
                     const categoryPercentage = ((amount / totalSpent) * 100).toFixed(1);
                     return (
-                      <div key={category} className="unbudgeted-item">
+                      <motion.div
+                        key={category}
+                        className="unbudgeted-item-enhanced"
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.1 * index }}
+                        whileHover={{ scale: 1.02, x: 5 }}
+                      >
                         <div className="category-info">
                           <span className="category">{category}</span>
+                          <div className="category-bar">
+                            <motion.div
+                              className="category-bar-fill"
+                              initial={{ width: 0 }}
+                              animate={{ width: `${categoryPercentage}%` }}
+                              transition={{ duration: 1, delay: 0.5 + (0.1 * index) }}
+                            />
+                          </div>
                           <span className="percentage">{categoryPercentage}% of total</span>
                         </div>
-                        <span className="amount">{formatAmount(amount)}</span>
-                      </div>
+                        <span className="amount">
+                          <AnimatedCounter value={amount} duration={1.5} />
+                        </span>
+                      </motion.div>
                     );
                   })}
               </div>
-            </div>
+            </motion.div>
           )}
         </>
       )}
-    </div>
+    </motion.div>
   );
 };
 

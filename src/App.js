@@ -8,6 +8,7 @@ import ExpenseList from './components/ExpenseList';
 import BudgetForm from './components/BudgetForm';
 import BudgetTracker from './components/BudgetTracker';
 import ExpenseReports from './components/ExpenseReports';
+import SuccessAnimation from './components/SuccessAnimation';
 import { useIsMobile, PullToRefresh } from './components/MobileEnhancements';
 import { ThemeProvider, ThemeToggle } from './components/ThemeProvider';
 
@@ -17,6 +18,8 @@ import { useExpenses, useBudgets } from './hooks/useLocalStorage';
 function AppContent() {
   const [activeTab, setActiveTab] = useState('expenses');
   const [editingExpense, setEditingExpense] = useState(null);
+  const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
   const isMobile = useIsMobile();
 
   // Use custom hooks for data management
@@ -44,6 +47,8 @@ function AppContent() {
 
   const handleAddExpense = (expenseData) => {
     addExpense(expenseData);
+    setSuccessMessage('Expense added successfully!');
+    setShowSuccessAnimation(true);
     // Auto navigate to expenses list after adding
     if (isMobile) {
       setTimeout(() => setActiveTab('expenses'), 500);
@@ -53,6 +58,8 @@ function AppContent() {
   const handleUpdateExpense = (expenseData) => {
     updateExpense(expenseData);
     setEditingExpense(null);
+    setSuccessMessage('Expense updated successfully!');
+    setShowSuccessAnimation(true);
     // Auto navigate to expenses list after updating
     if (isMobile) {
       setTimeout(() => setActiveTab('expenses'), 500);
@@ -114,7 +121,7 @@ function AppContent() {
           );
         case 'budget':
           return (
-            <div>
+            <div className="budget-section">
               <BudgetForm
                 budgets={budgets}
                 onSetBudget={handleSetBudget}
@@ -153,6 +160,11 @@ function AppContent() {
   return (
     <div className="App">
       <ThemeToggle />
+      <SuccessAnimation
+        show={showSuccessAnimation}
+        message={successMessage}
+        onComplete={() => setShowSuccessAnimation(false)}
+      />
       <div className="app-shell">
         <header className="app-header">
           <h1 className="app-title">Expense Tracker</h1>
