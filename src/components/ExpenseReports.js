@@ -127,66 +127,93 @@ const ExpenseReports = ({ expenses }) => {
     const doc = new jsPDF();
     const monthName = new Date(selectedMonth).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
     
-    // Add background color to header
-    doc.setFillColor(37, 99, 235);
-    doc.rect(0, 0, 210, 40, 'F');
+    // Modern gradient-style header with dark theme
+    doc.setFillColor(15, 23, 42); // slate-900
+    doc.rect(0, 0, 210, 50, 'F');
     
-    // Title with white text
-    doc.setFontSize(24);
+    // Accent line under header
+    doc.setFillColor(99, 102, 241); // indigo-500
+    doc.rect(0, 50, 210, 2, 'F');
+    
+    // Title with modern font
+    doc.setFontSize(28);
     doc.setTextColor(255, 255, 255);
     doc.setFont(undefined, 'bold');
-    doc.text('Expense Report', 105, 20, { align: 'center' });
+    doc.text('EXPENSE REPORT', 105, 22, { align: 'center' });
     
-    // Subtitle
-    doc.setFontSize(14);
+    // Subtitle with accent color
+    doc.setFontSize(12);
+    doc.setTextColor(165, 180, 252); // indigo-300
     doc.setFont(undefined, 'normal');
-    doc.text(monthName, 105, 32, { align: 'center' });
+    doc.text(monthName.toUpperCase(), 105, 38, { align: 'center' });
+    
+    // Add decorative elements
+    doc.setDrawColor(99, 102, 241);
+    doc.setLineWidth(0.5);
+    doc.line(60, 42, 150, 42);
     
     // Reset text color for body
-    doc.setTextColor(0, 0, 0);
+    doc.setTextColor(30, 41, 59); // slate-800
     
-    // Summary Section with colored boxes
-    doc.setFontSize(16);
+    // Modern Summary Section
+    doc.setFontSize(18);
     doc.setFont(undefined, 'bold');
-    doc.setTextColor(37, 99, 235);
-    doc.text('Summary', 14, 52);
+    doc.setTextColor(15, 23, 42);
+    doc.text('SUMMARY', 14, 65);
     
-    // Summary boxes with borders
+    // Modern Summary Cards with shadow effect
     doc.setFontSize(10);
     doc.setFont(undefined, 'normal');
-    doc.setTextColor(80, 80, 80);
     
-    const summaryY = 60;
+    const summaryY = 72;
     const summaryData = [
-      { label: 'Total Spent', value: formatAmountForPDF(summaryStats.total), color: [220, 38, 38] },
-      { label: 'Transactions', value: summaryStats.count.toString(), color: [37, 99, 235] },
-      { label: 'Average', value: formatAmountForPDF(summaryStats.average), color: [16, 185, 129] },
-      { label: 'Highest Daily', value: formatAmountForPDF(summaryStats.maxDaily), color: [245, 158, 11] }
+      { label: 'TOTAL SPENT', value: formatAmountForPDF(summaryStats.total), color: [239, 68, 68], bgColor: [254, 242, 242] },
+      { label: 'TRANSACTIONS', value: summaryStats.count.toString(), color: [59, 130, 246], bgColor: [239, 246, 255] },
+      { label: 'AVERAGE', value: formatAmountForPDF(summaryStats.average), color: [16, 185, 129], bgColor: [236, 253, 245] },
+      { label: 'HIGHEST DAILY', value: formatAmountForPDF(summaryStats.maxDaily), color: [245, 158, 11], bgColor: [255, 251, 235] }
     ];
     
     summaryData.forEach((item, index) => {
       const x = 14 + (index * 48);
-      // Colored top border
+      
+      // Card background with shadow effect (simulated with darker border)
+      doc.setFillColor(...item.bgColor);
+      doc.roundedRect(x, summaryY, 45, 22, 2, 2, 'F');
+      
+      // Colored accent bar on top
       doc.setFillColor(...item.color);
-      doc.rect(x, summaryY, 45, 2, 'F');
-      // Box
-      doc.setDrawColor(200, 200, 200);
-      doc.rect(x, summaryY, 45, 18);
-      doc.setFontSize(8);
-      doc.setTextColor(120, 120, 120);
-      doc.text(item.label, x + 2, summaryY + 6);
-      doc.setFontSize(10);
+      doc.roundedRect(x, summaryY, 45, 3, 2, 2, 'F');
+      
+      // Shadow effect (darker outline)
+      doc.setDrawColor(203, 213, 225);
+      doc.setLineWidth(0.3);
+      doc.roundedRect(x, summaryY, 45, 22, 2, 2);
+      
+      // Label
+      doc.setFontSize(7);
+      doc.setTextColor(100, 116, 139);
       doc.setFont(undefined, 'bold');
-      doc.setTextColor(0, 0, 0);
-      doc.text(item.value, x + 2, summaryY + 14);
+      doc.text(item.label, x + 22.5, summaryY + 8, { align: 'center' });
+      
+      // Value
+      doc.setFontSize(11);
+      doc.setFont(undefined, 'bold');
+      doc.setTextColor(...item.color);
+      doc.text(item.value, x + 22.5, summaryY + 17, { align: 'center' });
+      
       doc.setFont(undefined, 'normal');
     });
     
-    // Category Breakdown with styled table
-    doc.setFontSize(16);
+    // Modern Category Breakdown Section
+    doc.setFontSize(18);
     doc.setFont(undefined, 'bold');
-    doc.setTextColor(37, 99, 235);
-    doc.text('Category Breakdown', 14, 92);
+    doc.setTextColor(15, 23, 42);
+    doc.text('CATEGORY BREAKDOWN', 14, 108);
+    
+    // Decorative underline
+    doc.setDrawColor(99, 102, 241);
+    doc.setLineWidth(0.5);
+    doc.line(14, 110, 80, 110);
     
     const categoryTableData = categoryAnalysis.map(item => [
       item.category,
@@ -196,113 +223,174 @@ const ExpenseReports = ({ expenses }) => {
     ]);
     
     autoTable(doc, {
-      startY: 96,
-      head: [['Category', 'Total Amount', 'Count', 'Average']],
+      startY: 114,
+      head: [['CATEGORY', 'TOTAL', 'COUNT', 'AVERAGE']],
       body: categoryTableData,
-      theme: 'grid',
+      theme: 'plain',
       headStyles: {
-        fillColor: [37, 99, 235],
+        fillColor: [99, 102, 241],
         textColor: 255,
-        fontSize: 10,
+        fontSize: 9,
         fontStyle: 'bold',
-        halign: 'center'
+        halign: 'center',
+        cellPadding: 5
       },
       styles: {
         fontSize: 9,
         cellPadding: 4,
-        lineColor: [220, 220, 220],
-        lineWidth: 0.1
+        lineColor: [226, 232, 240],
+        lineWidth: 0.2,
+        textColor: [51, 65, 85]
       },
       alternateRowStyles: {
-        fillColor: [245, 247, 250]
+        fillColor: [248, 250, 252]
       },
       columnStyles: {
-        0: { fontStyle: 'bold', textColor: [37, 99, 235] },
-        1: { halign: 'right', textColor: [220, 38, 38] },
-        2: { halign: 'center' },
-        3: { halign: 'right' }
+        0: { fontStyle: 'bold', textColor: [99, 102, 241], halign: 'left' },
+        1: { halign: 'right', textColor: [239, 68, 68], fontStyle: 'bold' },
+        2: { halign: 'center', textColor: [100, 116, 139] },
+        3: { halign: 'right', textColor: [100, 116, 139] }
       }
     });
     
-    // All Expenses Table with enhanced styling
-    const startY = doc.lastAutoTable.finalY + 14;
-    doc.setFontSize(16);
+    // Modern All Expenses Section
+    const startY = doc.lastAutoTable.finalY + 16;
+    doc.setFontSize(18);
     doc.setFont(undefined, 'bold');
-    doc.setTextColor(37, 99, 235);
-    doc.text('All Expenses', 14, startY);
+    doc.setTextColor(15, 23, 42);
+    doc.text('ALL EXPENSES', 14, startY);
+    
+    // Decorative underline
+    doc.setDrawColor(99, 102, 241);
+    doc.setLineWidth(0.5);
+    doc.line(14, startY + 2, 70, startY + 2);
     
     const expensesTableData = monthlyExpenses
       .sort((a, b) => new Date(b.date) - new Date(a.date))
       .map(expense => [
         new Date(expense.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }),
         expense.paymentMethod || 'N/A',
-        formatAmountForPDF(expense.amount),
+        expense.amount, // Keep as number for custom formatting
         expense.description,
         expense.category,
         expense.paidBy || 'N/A'
       ]);
     
     autoTable(doc, {
-      startY: startY + 4,
-      head: [['Date', 'Payment', 'Amount', 'Description', 'Category', 'Paid By']],
+      startY: startY + 6,
+      head: [['DATE', 'PAYMENT', 'AMOUNT', 'DESCRIPTION', 'CATEGORY', 'PAID BY']],
       body: expensesTableData,
-      theme: 'grid',
+      theme: 'plain',
       headStyles: {
-        fillColor: [37, 99, 235],
+        fillColor: [15, 23, 42],
         textColor: 255,
-        fontSize: 9,
+        fontSize: 8,
         fontStyle: 'bold',
-        halign: 'center'
+        halign: 'center',
+        cellPadding: 4
       },
       styles: {
         fontSize: 8,
-        cellPadding: 3,
-        lineColor: [220, 220, 220],
-        lineWidth: 0.1
+        cellPadding: 3.5,
+        lineColor: [226, 232, 240],
+        lineWidth: 0.2,
+        textColor: [51, 65, 85]
       },
       alternateRowStyles: {
-        fillColor: [245, 247, 250]
+        fillColor: [248, 250, 252]
       },
       columnStyles: {
-        0: { cellWidth: 20, halign: 'center', fontStyle: 'bold' },
-        1: { cellWidth: 25, halign: 'center', fontSize: 7, textColor: [16, 185, 129] },
-        2: { cellWidth: 28, halign: 'right', fontStyle: 'bold', textColor: [220, 38, 38] },
-        3: { cellWidth: 45 },
-        4: { cellWidth: 28, halign: 'center', fontSize: 7 },
-        5: { cellWidth: 20, halign: 'center', fontSize: 7, textColor: [37, 99, 235] }
+        0: { cellWidth: 18, halign: 'center', fontStyle: 'bold', textColor: [100, 116, 139], fillColor: [241, 245, 249] },
+        1: { cellWidth: 24, halign: 'center', fontSize: 7, textColor: [16, 185, 129], fontStyle: 'bold' },
+        2: { cellWidth: 26, halign: 'right', fontStyle: 'bold', fontSize: 9 },
+        3: { cellWidth: 50, textColor: [51, 65, 85] },
+        4: { cellWidth: 26, halign: 'center', fontSize: 7, textColor: [99, 102, 241] },
+        5: { cellWidth: 18, halign: 'center', fontSize: 7, textColor: [100, 116, 139], fillColor: [241, 245, 249] }
       },
-      didParseCell: function(data) {
-        // Payment column (index 1) - no icons, just text
-        if (data.column.index === 1 && data.cell.section === 'body') {
-          // Keep as is, no emoji modification
-        }
-        // Paid By column (index 5) - no icons, just text
-        if (data.column.index === 5 && data.cell.section === 'body') {
-          // Keep as is, no emoji modification
+      didDrawCell: function(data) {
+        // Custom rendering for Amount column (index 2)
+        if (data.column.index === 2 && data.cell.section === 'body') {
+          const amount = data.cell.raw;
+          if (typeof amount === 'number') {
+            const formattedNumber = new Intl.NumberFormat('en-IN', {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2
+            }).format(amount);
+            
+            // Position for text
+            const cellX = data.cell.x;
+            const cellY = data.cell.y;
+            const cellWidth = data.cell.width;
+            const cellHeight = data.cell.height;
+            
+            // Clear the cell content
+            doc.setFillColor(data.row.index % 2 === 0 ? 255 : 248, data.row.index % 2 === 0 ? 255 : 250, data.row.index % 2 === 0 ? 255 : 252);
+            doc.rect(cellX, cellY, cellWidth, cellHeight, 'F');
+            
+            // Draw "Rs." in red color (same as amount)
+            doc.setFontSize(8);
+            doc.setTextColor(239, 68, 68); // Red - same as amount
+            doc.setFont(undefined, 'bold');
+            const rsText = 'Rs. ';
+            const rsWidth = doc.getTextWidth(rsText);
+            
+            // Draw amount in red color
+            doc.setTextColor(239, 68, 68); // Red
+            doc.setFont(undefined, 'bold');
+            const numberWidth = doc.getTextWidth(formattedNumber);
+            
+            // Calculate total width and starting position for right alignment
+            const totalWidth = rsWidth + numberWidth;
+            const startX = cellX + cellWidth - totalWidth - 2;
+            
+            // Draw Rs. and number in same red color
+            doc.setTextColor(239, 68, 68);
+            doc.setFont(undefined, 'bold');
+            doc.text(rsText, startX, cellY + cellHeight / 2 + 2);
+            doc.text(formattedNumber, startX + rsWidth, cellY + cellHeight / 2 + 2);
+          }
         }
       }
     });
     
-    // Footer with decorative line
+    // Modern Footer with gradient-style
     const pageCount = doc.internal.getNumberOfPages();
     for (let i = 1; i <= pageCount; i++) {
       doc.setPage(i);
       
-      // Decorative footer line
-      doc.setFillColor(37, 99, 235);
-      doc.rect(0, doc.internal.pageSize.height - 15, 210, 1, 'F');
+      // Footer background
+      doc.setFillColor(248, 250, 252);
+      doc.rect(0, doc.internal.pageSize.height - 20, 210, 20, 'F');
+      
+      // Accent line above footer
+      doc.setFillColor(99, 102, 241);
+      doc.rect(0, doc.internal.pageSize.height - 20, 210, 1, 'F');
       
       doc.setFontSize(8);
-      doc.setTextColor(120, 120, 120);
+      doc.setTextColor(100, 116, 139);
+      doc.setFont(undefined, 'normal');
       doc.text(
-        `Generated on ${new Date().toLocaleDateString('en-IN')}`,
+        `Generated on ${new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}`,
         14,
-        doc.internal.pageSize.height - 8
+        doc.internal.pageSize.height - 10
       );
+      
+      // Add name in center
+      doc.setFont(undefined, 'bold');
+      doc.setTextColor(15, 23, 42);
       doc.text(
-        `Page ${i} of ${pageCount}`,
+        'NAVEENKUMAR KALLURI',
+        105,
+        doc.internal.pageSize.height - 10,
+        { align: 'center' }
+      );
+      
+      doc.setFont(undefined, 'bold');
+      doc.setTextColor(99, 102, 241);
+      doc.text(
+        `${i} / ${pageCount}`,
         doc.internal.pageSize.width - 14,
-        doc.internal.pageSize.height - 8,
+        doc.internal.pageSize.height - 10,
         { align: 'right' }
       );
     }
