@@ -1,11 +1,17 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import ProgressRing from './ProgressRing';
 import AnimatedCounter from './AnimatedCounter';
 import EmptyState from './EmptyState';
 
 const BudgetTracker = ({ budgets, expenses }) => {
-  const currentMonth = new Date().toISOString().slice(0, 7);
+  const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7));
+
+  // Get available months from expenses
+  const availableMonths = useMemo(() => {
+    const months = [...new Set(expenses.map(e => e.date.slice(0, 7)))];
+    return months.sort().reverse(); // Most recent first
+  }, [expenses]);
 
   const getMonthlyExpenses = (month) => {
     return expenses
@@ -34,12 +40,12 @@ const BudgetTracker = ({ budgets, expenses }) => {
   };
 
   const getCurrentMonthBudget = () => {
-    return budgets.find(budget => budget.month === currentMonth);
+    return budgets.find(budget => budget.month === selectedMonth);
   };
 
   const currentBudget = getCurrentMonthBudget();
-  const totalSpent = getMonthlyExpenses(currentMonth);
-  const categoryExpenses = getCategoryExpenses(currentMonth);
+  const totalSpent = getMonthlyExpenses(selectedMonth);
+  const categoryExpenses = getCategoryExpenses(selectedMonth);
 
   return (
     <motion.div
@@ -48,7 +54,23 @@ const BudgetTracker = ({ budgets, expenses }) => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
-      <h2>Budget Tracker - {new Date(currentMonth).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</h2>
+      <div className="report-header">
+        <h2>Budget Tracker</h2>
+        <div className="month-selector">
+          <label htmlFor="budget-month">Month: </label>
+          <select
+            id="budget-month"
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(e.target.value)}
+          >
+            {availableMonths.map(month => (
+              <option key={month} value={month}>
+                {new Date(month + '-01').toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
       
       {!currentBudget ? (
         <EmptyState

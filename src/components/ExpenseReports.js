@@ -596,7 +596,7 @@ const ExpenseReports = ({ expenses }) => {
 
       {monthlyExpenses.length === 0 ? (
         <div className="no-data">
-          <p>No expenses found for {new Date(selectedMonth).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}.</p>
+          <p>No expenses found for {new Date(selectedMonth + '-01').toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}.</p>
         </div>
       ) : (
         <>
