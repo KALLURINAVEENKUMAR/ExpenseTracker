@@ -125,7 +125,7 @@ const ExpenseReports = ({ expenses }) => {
 
   const downloadPDFReport = () => {
     const doc = new jsPDF();
-    const monthName = new Date(selectedMonth).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    const monthName = new Date(selectedMonth + '-01').toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
     
     // Modern gradient-style header with dark theme
     doc.setFillColor(15, 23, 42); // slate-900
@@ -568,9 +568,9 @@ const ExpenseReports = ({ expenses }) => {
               onChange={(e) => setSelectedMonth(e.target.value)}
             >
               {availableMonths.map(month => (
-                <option key={month} value={month}>
-                  {new Date(month).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-                </option>
+              <option key={month} value={month}>
+                {new Date(month + '-01').toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+              </option>
               ))}
             </select>
           </div>
