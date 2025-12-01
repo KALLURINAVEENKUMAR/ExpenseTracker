@@ -35,7 +35,8 @@ const ExpenseReports = ({ expenses }) => {
 
   // Get available months from expenses
   const availableMonths = useMemo(() => {
-    const months = [...new Set(expenses.map(e => e.date.slice(0, 7)))];
+    const currentMonth = new Date().toISOString().slice(0, 7);
+    const months = [...new Set([currentMonth, ...expenses.map(e => e.date.slice(0, 7))])];
     return months.sort().reverse(); // Most recent first
   }, [expenses]);
 

@@ -7,9 +7,17 @@ import EmptyState from './EmptyState';
 const BudgetTracker = ({ budgets, expenses }) => {
   const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7));
 
+  // Helper function to format month display
+  const formatMonthDisplay = (monthString) => {
+    const [year, month] = monthString.split('-');
+    const date = new Date(parseInt(year), parseInt(month) - 1, 1);
+    return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  };
+
   // Get available months from expenses
   const availableMonths = useMemo(() => {
-    const months = [...new Set(expenses.map(e => e.date.slice(0, 7)))];
+    const currentMonth = new Date().toISOString().slice(0, 7);
+    const months = [...new Set([currentMonth, ...expenses.map(e => e.date.slice(0, 7))])];
     return months.sort().reverse(); // Most recent first
   }, [expenses]);
 
@@ -56,8 +64,8 @@ const BudgetTracker = ({ budgets, expenses }) => {
     >
       <div className="report-header">
         <h2>Budget Tracker</h2>
-        <div className="month-selector">
-          <label htmlFor="budget-month">Month: </label>
+        <div className="control-group">
+          <label htmlFor="budget-month">Month:</label>
           <select
             id="budget-month"
             value={selectedMonth}
@@ -65,7 +73,7 @@ const BudgetTracker = ({ budgets, expenses }) => {
           >
             {availableMonths.map(month => (
               <option key={month} value={month}>
-                {new Date(month + '-01').toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                {formatMonthDisplay(month)}
               </option>
             ))}
           </select>
