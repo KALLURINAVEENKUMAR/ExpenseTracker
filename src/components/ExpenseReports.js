@@ -11,6 +11,13 @@ const ExpenseReports = ({ expenses }) => {
   const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7));
   const [reportType, setReportType] = useState('category');
 
+  // Helper function to format month display
+  const formatMonthDisplay = (monthString) => {
+    const [year, month] = monthString.split('-');
+    const date = new Date(parseInt(year), parseInt(month) - 1, 1);
+    return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  };
+
   const formatAmountForPDF = (amount) => {
     // Use 'Rs.' instead of rupee symbol for PDF compatibility
     return 'Rs. ' + new Intl.NumberFormat('en-IN', {
@@ -125,7 +132,7 @@ const ExpenseReports = ({ expenses }) => {
 
   const downloadPDFReport = () => {
     const doc = new jsPDF();
-    const monthName = new Date(selectedMonth + '-01').toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    const monthName = formatMonthDisplay(selectedMonth);
     
     // Modern gradient-style header with dark theme
     doc.setFillColor(15, 23, 42); // slate-900
@@ -569,7 +576,7 @@ const ExpenseReports = ({ expenses }) => {
             >
               {availableMonths.map(month => (
               <option key={month} value={month}>
-                {new Date(month + '-01').toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                {formatMonthDisplay(month)}
               </option>
               ))}
             </select>
@@ -596,7 +603,7 @@ const ExpenseReports = ({ expenses }) => {
 
       {monthlyExpenses.length === 0 ? (
         <div className="no-data">
-          <p>No expenses found for {new Date(selectedMonth + '-01').toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}.</p>
+          <p>No expenses found for {formatMonthDisplay(selectedMonth)}.</p>
         </div>
       ) : (
         <>
